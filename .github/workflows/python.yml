@@ -20,7 +20,7 @@ jobs:
     - name: Install Maturin
       run: pip install maturin
     - name: Build wheel
-      run: maturin build --release --bindings pyo3
+      run: maturin build --release --bindings pyo3 --manifest-path windows-capture-python/Cargo.toml
     - name: Upload Python wheel
       uses: actions/upload-artifact@v4
       with:
