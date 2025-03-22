@@ -10,20 +10,9 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  test:
     runs-on: windows-latest
-
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Build Release
-      run: cargo build --release --verbose
-    - name: Upload Rust artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: rust-artifacts
-        path: target/release
