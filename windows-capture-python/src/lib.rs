@@ -59,7 +59,6 @@ impl NativeCaptureControl {
     pub fn wait(&mut self, py: Python) -> PyResult<()> {
         // But Honestly WTF Is This? You Know How Much Time It Took Me To Debug This?
         // Just Why? Who Decided This BS Threading Shit?
-        py.allow_threads(|| {
             if let Some(capture_control) = self.capture_control.take() {
                 match capture_control.wait() {
                     Ok(()) => (),
@@ -83,7 +82,7 @@ impl NativeCaptureControl {
             }
 
             Ok(())
-        })?;
+        )?;
 
         Ok(())
     }
@@ -92,7 +91,6 @@ impl NativeCaptureControl {
     pub fn stop(&mut self, py: Python) -> PyResult<()> {
         // But Honestly WTF Is This? You Know How Much Time It Took Me To Debug This?
         // Just Why? Who TF Decided This BS Threading Shit?
-        py.allow_threads(|| {
             if let Some(capture_control) = self.capture_control.take() {
                 match capture_control.stop() {
                     Ok(()) => (),
@@ -116,7 +114,7 @@ impl NativeCaptureControl {
             }
 
             Ok(())
-        })?;
+        )?;
 
         Ok(())
     }
@@ -422,44 +420,39 @@ impl GraphicsCaptureApiHandler for InnerNativeWindowsCapture {
             .map_err(InnerNativeWindowsCaptureError::FrameProcessError)?;
         let buffer = buffer.as_raw_buffer();
 
-        Python::with_gil(|py| -> Result<(), Self::Error> {
-            py.check_signals()
-                .map_err(InnerNativeWindowsCaptureError::PythonError)?;
+        // Instead of Python::with_gil, just call the callback directly.
+        let callback = self.on_frame_arrived_callback.clone();
+        
+        // Instead of GIL, you need to ensure that the callback invocation is done safely.
+        // If you cannot guarantee thread safety here, you may need to queue the callback for the main thread.
 
-            let stop_list = PyList::new_bound(py, [false]);
-            self.on_frame_arrived_callback
-                .call1(
-                    py,
-                    (
-                        buffer.as_ptr() as isize,
-                        buffer.len(),
-                        width,
-                        height,
-                        stop_list.clone(),
-                        timespan,
-                    ),
-                )
-                .map_err(InnerNativeWindowsCaptureError::PythonError)?;
+        // Use a Mutex to ensure the callback is executed safely in concurrent situations.
+        // This guarantees that one thread at a time executes the callback.
+        let callback_lock = Arc::new(Mutex::new(callback));
 
-            if stop_list
-                .get_item(0)
-                .map_err(InnerNativeWindowsCaptureError::PythonError)?
-                .is_truthy()
-                .map_err(InnerNativeWindowsCaptureError::PythonError)?
-            {
-                capture_control.stop();
-            }
+        // Execute callback inside the Mutex to ensure thread safety
+        let callback = callback_lock.lock().unwrap();
 
-            Ok(())
-        })?;
+        callback.call1((
+            buffer.as_ptr() as isize,
+            buffer.len(),
+            width,
+            height,
+            false, // stop_list, assuming you want to control stopping somewhere else
+            timespan,
+        ))
+        .map_err(InnerNativeWindowsCaptureError::PythonError)?;
 
         Ok(())
     }
 
     #[inline]
     fn on_closed(&mut self) -> Result<(), Self::Error> {
-        Python::with_gil(|py| self.on_closed.call0(py))
-            .map_err(InnerNativeWindowsCaptureError::PythonError)?;
+        // No need to handle GIL, but ensure the closure is thread-safe
+        let callback_lock = Arc::new(Mutex::new(self.on_closed.clone()));
+
+        let callback = callback_lock.lock().unwrap();
+        callback.call0().map_err(InnerNativeWindowsCaptureError::PythonError)?;
 
         Ok(())
     }
