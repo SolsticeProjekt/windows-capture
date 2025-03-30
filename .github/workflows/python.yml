@@ -11,12 +11,10 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.13.1 (Free Threaded)
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13.1'
-        architecture: 'x64'
-        freethreaded: true
+        python-version: '3.9'
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
     - name: Install Maturin
