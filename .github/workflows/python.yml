@@ -16,8 +16,7 @@ jobs:
       with:
         python-version: '3.13.1'
         architecture: 'x64'
-        python-platform: 'win32'
-        python-kind: 'freethreaded'
+        freethreaded: true
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
     - name: Install Maturin
