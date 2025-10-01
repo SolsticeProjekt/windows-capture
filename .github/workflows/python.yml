@@ -2,20 +2,27 @@ name: Python
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
-
-env:
-  CARGO_TERM_COLOR: always
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Build
-        run: cargo build -p windows-capture-python --verbose
-      - name: Run tests
-        run: cargo test -p windows-capture-python --verbose
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install Maturin
+      run: pip install maturin
+    - name: Build wheel
+      run: maturin build --release --bindings pyo3 --manifest-path windows-capture-python/Cargo.toml
+    - name: Upload Python wheel
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-wheel
+        path: target/wheels/*.whl
