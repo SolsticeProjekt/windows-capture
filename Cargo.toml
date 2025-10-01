@@ -18,6 +18,10 @@ categories = [
 ]
 resolver = "3"
 
+[dependencies.pyo3]
+version = "0.19" # or the latest stable version supporting free-threaded
+features = ["extension-module", "free-threaded"]
+
 [dependencies]
 # Windows API
 windows = { version = "0.62.1", features = [
