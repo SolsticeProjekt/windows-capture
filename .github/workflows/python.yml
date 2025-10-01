@@ -19,8 +19,10 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
     - name: Install Maturin
       run: pip install maturin
-    - name: Build wheel (free-threaded)       # <----- here
-      run: PYO3_PYTHON_FREE_THREADING=1 maturin build --release --bindings pyo3 --manifest-path windows-capture-python/Cargo.toml
+    - name: Build wheel (free-threaded)
+      env:
+        PYO3_PYTHON_FREE_THREADING: "1"
+      run: maturin build --release --bindings pyo3 --manifest-path windows-capture-python/Cargo.toml
     - name: Upload Python wheel
       uses: actions/upload-artifact@v4
       with:
