@@ -34,7 +34,7 @@ use windows::Win32::Graphics::Dxgi::Common::{
 };
 
 /// Fastest Windows Screen Capture Library For Python 🔥.
-#[pymodule]
+#[pymodule(gil_used = false)]
 fn windows_capture(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<NativeWindowsCapture>()?;
     m.add_class::<NativeCaptureControl>()?;
