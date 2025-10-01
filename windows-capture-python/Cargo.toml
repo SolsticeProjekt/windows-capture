@@ -26,7 +26,6 @@ pyo3 = { version = "0.26.0", features = [
     "auto-initialize",
     "abi3",
     "abi3-py39",
-    "free-threaded",
 ] }
 thiserror = "2.0.16"
 windows = "0.62.1"
